@@ -1,158 +1,79 @@
-interface Shape {
-    double calculateArea();
-    String getInfo();
-}
+import javax.swing.*;
+import java.awt.*;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 
-// Клас "Коло"
-class Circle implements Shape {
-    private double radius;
-
-    public Circle(double radius) {
-        this.radius = radius;
-    }
-
-    @Override
-    public double calculateArea() {
-        return Math.PI * radius * radius;
-    }
-
-    @Override
-    public String getInfo() {
-        return "Circle with radius: " + radius + ", Area: " + calculateArea();
-    }
-}
-
-// Клас "Прямокутник"
-class Rectangle implements Shape {
-    private double width;
-    private double height;
-
-    public Rectangle(double width, double height) {
-        this.width = width;
-        this.height = height;
-    }
-
-    @Override
-    public double calculateArea() {
-        return width * height;
-    }
-
-    @Override
-    public String getInfo() {
-        return "Rectangle with width: " + width + ", height: " + height + ", Area: " + calculateArea();
-    }
-}
-
-// Клас "Трикутник"
-class Triangle implements Shape {
-    private double base;
-    private double height;
-
-    public Triangle(double base, double height) {
-        this.base = base;
-        this.height = height;
-    }
-
-    @Override
-    public double calculateArea() {
-        return 0.5 * base * height;
-    }
-
-    @Override
-    public String getInfo() {
-        return "Triangle with base: " + base + ", height: " + height + ", Area: " + calculateArea();
-    }
-}
-
-// Задача 2: Тварини
-
-// Інтерфейс для тварин
-interface Animal {
-    String makeSound();
-    String getFood();
-    String getInfo();
-}
-
-// Клас "Собака"
-class Dog implements Animal {
-    @Override
-    public String makeSound() {
-        return "Woof";
-    }
-
-    @Override
-    public String getFood() {
-        return "Meat";
-    }
-
-    @Override
-    public String getInfo() {
-        return "Dog: Sound - " + makeSound() + ", Food - " + getFood();
-    }
-}
-
-// Клас "Кішка"
-class Cat implements Animal {
-    @Override
-    public String makeSound() {
-        return "Meow";
-    }
-
-    @Override
-    public String getFood() {
-        return "Fish";
-    }
-
-    @Override
-    public String getInfo() {
-        return "Cat: Sound - " + makeSound() + ", Food - " + getFood();
-    }
-}
-
-// Клас "Птах"
-class Bird implements Animal {
-    @Override
-    public String makeSound() {
-        return "Tweet";
-    }
-
-    @Override
-    public String getFood() {
-        return "Seeds";
-    }
-
-    @Override
-    public String getInfo() {
-        return "Bird: Sound - " + makeSound() + ", Food - " + getFood();
-    }
-}
-
-// Основний клас для демонстрації
 public class Main {
     public static void main(String[] args) {
-        // Масив фігур
-        Shape[] shapes = {
-                new Circle(5),
-                new Rectangle(4, 6),
-                new Triangle(3, 7)
+        // Створюємо головне вікно
+        JFrame frame = new JFrame("Калькулятор");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(300, 400);
+
+        // Панель для відображення результату
+        JTextField display = new JTextField();
+        display.setFont(new Font("Arial", Font.BOLD, 24));
+        display.setHorizontalAlignment(JTextField.RIGHT);
+        display.setEditable(false);
+
+        // Панель для кнопок
+        JPanel buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(4, 4, 5, 5));
+
+        // Масив кнопок
+        String[] buttons = {
+                "7", "8", "9", "/",
+                "4", "5", "6", "*",
+                "1", "2", "3", "-",
+                "0", ".", "=", "+"
         };
 
-        System.out.println("Geometric Shapes:");
-        for (Shape shape : shapes) {
-            System.out.println(shape.getInfo());
+        // Змінні для збереження стану
+        final double[] num = {0};
+        final String[] operator = {""};
+
+        // Додаємо кнопки на панель
+        for (String text : buttons) {
+            JButton button = new JButton(text);
+            button.setFont(new Font("Arial", Font.BOLD, 20));
+            button.addActionListener(new ActionListener() {
+                @Override
+                public void actionPerformed(ActionEvent e) {
+                    String command = e.getActionCommand();
+
+                    if ("0123456789.".contains(command)) {
+                        // Додавання цифр до дисплея
+                        display.setText(display.getText() + command);
+                    } else if ("/*-+".contains(command)) {
+                        // Зберігаємо число та операцію
+                        num[0] = Double.parseDouble(display.getText());
+                        operator[0] = command;
+                        display.setText("");
+                    } else if ("=".equals(command)) {
+                        // Виконуємо обчислення
+                        double secondNum = Double.parseDouble(display.getText());
+                        double result = 0;
+                        switch (operator[0]) {
+                            case "+": result = num[0] + secondNum; break;
+                            case "-": result = num[0] - secondNum; break;
+                            case "*": result = num[0] * secondNum; break;
+                            case "/": result = num[0] / secondNum; break;
+                        }
+                        display.setText(String.valueOf(result));
+                    }
+                }
+            });
+            buttonPanel.add(button);
         }
 
-        // Масив тварин
-        Animal[] animals = {
-                new Dog(),
-                new Cat(),
-                new Bird()
-        };
+        // Додаємо компоненти до головного вікна
+        frame.setLayout(new BorderLayout());
+        frame.add(display, BorderLayout.NORTH);
+        frame.add(buttonPanel, BorderLayout.CENTER);
 
-        System.out.println("\nAnimals:");
-        for (Animal animal : animals) {
-            System.out.println(animal.getInfo());
-        }
+        // Відображаємо вікно
+        frame.setVisible(true);
     }
 }
+
 
