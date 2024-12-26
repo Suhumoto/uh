@@ -4,76 +4,141 @@ import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 
 public class Main {
-    public static void main(String[] args) {
-        // Створюємо головне вікно
-        JFrame frame = new JFrame("Калькулятор");
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setSize(300, 400);
 
-        // Панель для відображення результату
-        JTextField display = new JTextField();
+    private double memory = 0; // Для функції "Запам'ятати"
+    private JFrame frame;
+    private JTextField display;
+    private JPanel buttonPanel;
+
+    public Main() {
+        frame = new JFrame("Калькулятор");
+        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        frame.setSize(400, 600);
+
+        display = new JTextField();
         display.setFont(new Font("Arial", Font.BOLD, 24));
         display.setHorizontalAlignment(JTextField.RIGHT);
         display.setEditable(false);
 
-        // Панель для кнопок
-        JPanel buttonPanel = new JPanel();
-        buttonPanel.setLayout(new GridLayout(4, 4, 5, 5));
+        buttonPanel = new JPanel();
+        buttonPanel.setLayout(new GridLayout(5, 4, 10, 10));
 
-        // Масив кнопок
-        String[] buttons = {
+        addButtons();
+
+        frame.add(display, BorderLayout.NORTH);
+        frame.add(buttonPanel, BorderLayout.CENTER);
+        frame.setVisible(true);
+    }
+
+    private void addButtons() {
+        String[] buttonLabels = {
                 "7", "8", "9", "/",
                 "4", "5", "6", "*",
                 "1", "2", "3", "-",
-                "0", ".", "=", "+"
+                "0", ".", "=", "+",
+                "C", "\u221A", "x^2", "M"
         };
 
-        // Змінні для збереження стану
-        final double[] num = {0};
-        final String[] operator = {""};
+        for (String label : buttonLabels) {
+            JButton button = new JButton(label);
+            button.setFont(new Font("Arial", Font.BOLD, 18));
+            button.setForeground(Color.WHITE);
 
-        // Додаємо кнопки на панель
-        for (String text : buttons) {
-            JButton button = new JButton(text);
-            button.setFont(new Font("Arial", Font.BOLD, 20));
-            button.addActionListener(new ActionListener() {
-                @Override
-                public void actionPerformed(ActionEvent e) {
-                    String command = e.getActionCommand();
+            // Установка кольорів для кнопок
+            switch (label) {
+                case "C":
+                    button.setBackground(Color.RED);
+                    break;
+                case "=":
+                    button.setBackground(Color.GREEN);
+                    break;
+                case "M":
+                    button.setBackground(Color.ORANGE);
+                    break;
+                default:
+                    button.setBackground(Color.BLUE);
+            }
 
-                    if ("0123456789.".contains(command)) {
-                        // Додавання цифр до дисплея
-                        display.setText(display.getText() + command);
-                    } else if ("/*-+".contains(command)) {
-                        // Зберігаємо число та операцію
-                        num[0] = Double.parseDouble(display.getText());
-                        operator[0] = command;
-                        display.setText("");
-                    } else if ("=".equals(command)) {
-                        // Виконуємо обчислення
-                        double secondNum = Double.parseDouble(display.getText());
-                        double result = 0;
-                        switch (operator[0]) {
-                            case "+": result = num[0] + secondNum; break;
-                            case "-": result = num[0] - secondNum; break;
-                            case "*": result = num[0] * secondNum; break;
-                            case "/": result = num[0] / secondNum; break;
-                        }
-                        display.setText(String.valueOf(result));
-                    }
-                }
-            });
+            button.addActionListener(new ButtonClickListener());
             buttonPanel.add(button);
         }
+    }
 
-        // Додаємо компоненти до головного вікна
-        frame.setLayout(new BorderLayout());
-        frame.add(display, BorderLayout.NORTH);
-        frame.add(buttonPanel, BorderLayout.CENTER);
+    private class ButtonClickListener implements ActionListener {
+        private String currentInput = "";
+        private String operator = "";
+        private double firstNumber = 0;
 
-        // Відображаємо вікно
-        frame.setVisible(true);
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String command = e.getActionCommand();
+
+            switch (command) {
+                case "C":
+                    currentInput = "";
+                    operator = "";
+                    firstNumber = 0;
+                    display.setText("");
+                    break;
+                case "=":
+                    calculate();
+                    break;
+                case "+": case "-": case "*": case "/":
+                    operator = command;
+                    firstNumber = Double.parseDouble(currentInput);
+                    currentInput = "";
+                    break;
+                case "\u221A": // Квадратний корінь
+                    double value = Double.parseDouble(currentInput);
+                    display.setText(String.valueOf(Math.sqrt(value)));
+                    currentInput = "";
+                    break;
+                case "x^2": // Квадрат числа
+                    value = Double.parseDouble(currentInput);
+                    display.setText(String.valueOf(Math.pow(value, 2)));
+                    currentInput = "";
+                    break;
+                case "M": // Запам'ятати
+                    memory = Double.parseDouble(currentInput);
+                    display.setText("Збережено: " + memory);
+                    currentInput = "";
+                    break;
+                default:
+                    currentInput += command;
+                    display.setText(currentInput);
+            }
+        }
+
+        private void calculate() {
+            double secondNumber = Double.parseDouble(currentInput);
+            double result = 0;
+
+            switch (operator) {
+                case "+":
+                    result = firstNumber + secondNumber;
+                    break;
+                case "-":
+                    result = firstNumber - secondNumber;
+                    break;
+                case "*":
+                    result = firstNumber * secondNumber;
+                    break;
+                case "/":
+                    result = secondNumber != 0 ? firstNumber / secondNumber : 0;
+                    break;
+            }
+
+            display.setText(String.valueOf(result));
+            currentInput = "";
+            operator = "";
+            firstNumber = 0;
+        }
+    }
+
+    public static void main(String[] args) {
+        SwingUtilities.invokeLater(Main::new);
     }
 }
+
 
 
