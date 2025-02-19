@@ -3,23 +3,28 @@
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.URL;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.util.ArrayList;
+import java.util.List;
+
+
 
 public class TelegramMessenger extends JFrame {
     private JTextField messageField;
-    private JButton sendButton;
+    private JButton sendButton, historyButton;
 
-
-    private static final String BOT_TOKEN = "8054578033:AAFrLAKDe9fr2xEk7DUw5_BHqHsVF8L7-Mo";
-
-    private static final String CHAT_ID = "t.me/ilovepudgebot";
+    private static final String BOT_TOKEN = "your_bot_token"; // Замініть на свій токен
+    private static final String CHAT_ID = "your_chat_id"; // Замініть на свій Chat ID
+    private static final String FILE_NAME = "messages.json"; // Файл для збереження історії
 
     public TelegramMessenger() {
         setTitle("Telegram Messenger");
-        setSize(400, 200);
+        setSize(400, 250);
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setLayout(null);
 
@@ -33,17 +38,33 @@ public class TelegramMessenger extends JFrame {
 
         sendButton = new JButton("Надіслати");
         sendButton.setBounds(250, 100, 120, 30);
+        sendButton.addActionListener(new SendMessageListener());
         add(sendButton);
 
-        sendButton.addActionListener(new ActionListener() {
-            @Override
-            public void actionPerformed(ActionEvent e) {
-                String message = messageField.getText();
-                sendMessageToTelegram(message);
-            }
-        });
+        historyButton = new JButton("Історія");
+        historyButton.setBounds(20, 100, 120, 30);
+        historyButton.addActionListener(new ShowHistoryListener());
+        add(historyButton);
 
         setVisible(true);
+    }
+
+    private class SendMessageListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            String message = messageField.getText();
+            if (!message.isEmpty()) {
+                sendMessageToTelegram(message);
+                saveMessageToJson(message);
+            }
+        }
+    }
+
+    private class ShowHistoryListener implements ActionListener {
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            showHistory();
+        }
     }
 
     private void sendMessageToTelegram(String message) {
@@ -73,7 +94,34 @@ public class TelegramMessenger extends JFrame {
         }
     }
 
+    private void saveMessageToFile(String message) {
+        try (FileWriter writer = new FileWriter(FILE_NAME, true)) {
+            writer.write(message + "\n");
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Помилка запису у файл!", "Помилка", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
+    private void showHistory() {
+        try {
+            File file = new File(FILE_NAME);
+            if (!file.exists() || file.length() == 0) {
+                JOptionPane.showMessageDialog(this, "Історія порожня!", "Історія", JOptionPane.INFORMATION_MESSAGE);
+                return;
+            }
+
+            List<String> messagesList = Files.readAllLines(Paths.get(FILE_NAME), StandardCharsets.UTF_8);
+            String history = String.join("\n", messagesList);
+            JOptionPane.showMessageDialog(this, history, "Історія повідомлень", JOptionPane.INFORMATION_MESSAGE);
+        } catch (IOException e) {
+            JOptionPane.showMessageDialog(this, "Помилка читання файлу!", "Помилка", JOptionPane.ERROR_MESSAGE);
+        }
+    }
+
+
     public static void main(String[] args) {
         new TelegramMessenger();
     }
 }
+
