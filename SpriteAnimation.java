@@ -1,48 +1,59 @@
+//TIP To <b>Run</b> code, press <shortcut actionId="Run"/> or
+// click the <icon src="AllIcons.Actions.Execute"/> icon in the gutter.
 import javax.swing.*;
 import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
 
-public class SpriteAnimation extends JPanel implements ActionListener {
-    private Image[] sprites;
-    private int currentFrame = 0;
+public class SpriteAnimation extends JFrame {
+    private int x = 50;
+    private int speed = 5;
     private Timer timer;
 
     public SpriteAnimation() {
+        setTitle("Анімація Спрайта");
+        setSize(400, 300);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
 
-        sprites = new Image[4];
-        for (int i = 0; i < sprites.length; i++) {
-            sprites[i] = new ImageIcon("res/sprite" + (i + 1) + ".png").getImage();
-        }
-
-
-        timer = new Timer(100, this);
+        timer = new Timer(30, e -> {
+            x += speed;
+            if (x > getWidth() - 100 || x < 0) {
+                speed = -speed;
+            }
+            repaint();
+        });
         timer.start();
+
+        openControlWindow();
     }
 
     @Override
-    protected void paintComponent(Graphics g) {
-        super.paintComponent(g);
-        g.drawImage(sprites[currentFrame], 50, 50, this);
+    public void paint(Graphics g) {
+        super.paint(g);
+        g.setColor(Color.RED);
+        g.fillRect(x, 100, 50, 50);
     }
 
-    @Override
-    public void actionPerformed(ActionEvent e) {
-        currentFrame++;
-        if (currentFrame >= sprites.length) {
-            currentFrame = 0;
-        }
-        repaint();
+    private void openControlWindow() {
+        JFrame controlFrame = new JFrame("Управління");
+        controlFrame.setSize(200, 100);
+        controlFrame.setLocationRelativeTo(null);
+
+        JButton speedUp = new JButton("Прискорити");
+        JButton slowDown = new JButton("Сповільнити");
+
+        speedUp.addActionListener(e -> speed = Math.min(speed + 2, 20));
+        slowDown.addActionListener(e -> speed = Math.max(speed - 2, 2));
+
+        JPanel panel = new JPanel();
+        panel.add(speedUp);
+        panel.add(slowDown);
+
+        controlFrame.add(panel);
+        controlFrame.setVisible(true);
     }
 
     public static void main(String[] args) {
-        JFrame frame = new JFrame("Анімація зі спрайтами");
-        SpriteAnimation animation = new SpriteAnimation();
-        frame.add(animation);
-        frame.setSize(400, 400);
-        frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        frame.setVisible(true);
+        SwingUtilities.invokeLater(() -> new SpriteAnimation().setVisible(true));
     }
 }
-
 
